@@ -15,3 +15,7 @@ workspace = true
 cfg-if.workspace = true
 derive_more = { workspace = true, features = ["full"] }
 linked_list_allocator.workspace = true
+
+[features]
+default = ["std"]
+std = []
