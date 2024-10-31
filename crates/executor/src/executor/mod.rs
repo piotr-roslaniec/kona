@@ -444,7 +444,7 @@ where
 }
 
 #[cfg(test)]
-mod test {
+pub(crate) mod test {
     use crate::constants::FEE_RECIPIENT;
 
     use super::*;
@@ -460,7 +460,7 @@ mod test {
     /// A [TrieProvider] implementation that fetches trie nodes and bytecode from the local
     /// testdata folder.
     #[derive(Deserialize)]
-    struct TestdataTrieProvider {
+    pub(crate) struct TestdataTrieProvider {
         preimages: HashMap<B256, Bytes>,
     }
 
