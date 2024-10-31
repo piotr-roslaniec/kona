@@ -19,7 +19,7 @@ mod traits;
 pub use traits::BasicKernelInterface;
 
 mod types;
-pub use types::FileDescriptor;
+pub use types::{FileDescriptor, TryClone};
 
 mod executor;
 pub use executor::block_on;

@@ -21,7 +21,7 @@ use kona_preimage::{HintReader, OracleServer, PipeHandle};
 use kv::KeyValueStore;
 use std::{
     io::{stderr, stdin, stdout},
-    os::fd::{AsFd, AsRawFd, OwnedFd},
+    os::fd::{AsFd, OwnedFd},
     panic::AssertUnwindSafe,
     sync::Arc,
 };

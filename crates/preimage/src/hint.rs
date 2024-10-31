@@ -9,7 +9,7 @@ use tracing::{error, trace};
 
 /// A [HintWriter] is a high-level interface to the hint pipe. It provides a way to write hints to
 /// the host.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct HintWriter {
     pipe_handle: PipeHandle,
 }

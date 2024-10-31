@@ -1,11 +1,14 @@
 //! This module contains the local types for the `kona-common` crate.
 
+#[cfg(feature = "std")]
 use std::os::fd::{AsRawFd, OwnedFd};
 
-use crate::errors::{IOError, IOResult};
+#[cfg(feature = "std")]
+use crate::errors::IOError;
+use crate::errors::IOResult;
 
 /// File descriptors available to the `client` within the FPVM kernel.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug)]
 pub enum FileDescriptor {
     /// Read-only standard input stream.
     StdIn,
@@ -36,7 +39,8 @@ impl From<FileDescriptor> for usize {
             FileDescriptor::HintWrite => 4,
             FileDescriptor::PreimageRead => 5,
             FileDescriptor::PreimageWrite => 6,
-            FileDescriptor::Wildcard(value) => value.as_raw_fd() as usize,
+            #[cfg(feature = "std")]
+            FileDescriptor::Wildcard(value) => value.as_raw_fd() as Self,
         }
     }
 }
@@ -47,21 +51,27 @@ impl From<FileDescriptor> for i32 {
     }
 }
 
-impl FileDescriptor {
+/// A trait for types that support fallible cloning.
+pub trait TryClone: Sized {
+    /// Clone the value, returning a `Result` to handle cases where cloning may fail.
+    fn try_clone(&self) -> IOResult<Self>;
+}
+
+impl TryClone for FileDescriptor {
     /// Clone the file descriptor.
-    pub fn try_clone(&self) -> IOResult<Self> {
+    fn try_clone(&self) -> IOResult<Self> {
         match self {
-            FileDescriptor::StdIn => Ok(FileDescriptor::StdIn),
-            FileDescriptor::StdOut => Ok(FileDescriptor::StdOut),
-            FileDescriptor::StdErr => Ok(FileDescriptor::StdErr),
-            FileDescriptor::HintRead => Ok(FileDescriptor::HintRead),
-            FileDescriptor::HintWrite => Ok(FileDescriptor::HintWrite),
-            FileDescriptor::PreimageRead => Ok(FileDescriptor::PreimageRead),
-            FileDescriptor::PreimageWrite => Ok(FileDescriptor::PreimageWrite),
+            Self::StdIn => Ok(Self::StdIn),
+            Self::StdOut => Ok(Self::StdOut),
+            Self::StdErr => Ok(Self::StdErr),
+            Self::HintRead => Ok(Self::HintRead),
+            Self::HintWrite => Ok(Self::HintWrite),
+            Self::PreimageRead => Ok(Self::PreimageRead),
+            Self::PreimageWrite => Ok(Self::PreimageWrite),
             #[cfg(feature = "std")]
-            FileDescriptor::Wildcard(fd) => Ok(FileDescriptor::Wildcard(
-                fd.try_clone().map_err(|_| IOError(fd.as_raw_fd() as i32))?,
-            )),
+            Self::Wildcard(fd) => {
+                Ok(Self::Wildcard(fd.try_clone().map_err(|_| IOError(fd.as_raw_fd()))?))
+            }
         }
     }
 }

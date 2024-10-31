@@ -10,7 +10,7 @@ use core::{
 };
 use kona_common::{
     errors::{IOError, IOResult},
-    io, FileDescriptor,
+    io, FileDescriptor, TryClone,
 };
 
 /// [PipeHandle] is a handle for one end of a bidirectional pipe.
@@ -35,18 +35,22 @@ impl PipeHandle {
 
     /// Reads exactly `buf.len()` bytes into `buf`.
     pub fn read_exact<'a>(&self, buf: &'a mut [u8]) -> impl Future<Output = IOResult<usize>> + 'a {
-        ReadFuture {
-            // TODO: Is cloning here efficient?
-            pipe_handle: Self::new(self.read_handle.try_clone(), self.write_handle.try_clone()),
-            buf: RefCell::new(buf),
-            read: 0,
+        let read_handle_result = self.read_handle.try_clone();
+        let write_handle_result = self.write_handle.try_clone();
+        async move {
+            let pipe_handle = Self::new(read_handle_result?, write_handle_result?);
+            ReadFuture { pipe_handle, buf: RefCell::new(buf), read: 0 }.await
         }
     }
 
     /// Write the given buffer to the pipe.
     pub fn write<'a>(&self, buf: &'a [u8]) -> impl Future<Output = IOResult<usize>> + 'a {
         // TODO: Is cloning here efficient?
-        WriteFuture { pipe_handle: *self, buf, written: 0 }
+        let clone_result = self.try_clone();
+        async move {
+            let pipe_handle = clone_result?;
+            WriteFuture { pipe_handle, buf, written: 0 }.await
+        }
     }
 
     /// Returns the read handle for the pipe.
@@ -60,10 +64,16 @@ impl PipeHandle {
     }
 }
 
+impl TryClone for PipeHandle {
+    fn try_clone(&self) -> IOResult<Self> {
+        Ok(Self::new(self.read_handle.try_clone()?, self.write_handle.try_clone()?))
+    }
+}
+
 // TODO: Should we implement Clone for PipeHandle?
 impl Clone for PipeHandle {
     fn clone(&self) -> Self {
-        Self::new(self.read_handle.try_clone()?, self.write_handle.try_clone()?)
+        self.try_clone().unwrap()
     }
 }
 

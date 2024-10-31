@@ -37,7 +37,11 @@ fn main() -> Result<()> {
         //                          PROLOGUE                          //
         ////////////////////////////////////////////////////////////////
 
-        let oracle = Arc::new(CachingOracle::new(ORACLE_LRU_SIZE, ORACLE_READER, HINT_WRITER));
+        let oracle = Arc::new(CachingOracle::new(
+            ORACLE_LRU_SIZE,
+            ORACLE_READER.clone(),
+            HINT_WRITER.clone(),
+        ));
         let boot = Arc::new(BootInfo::load(oracle.as_ref()).await?);
         let l1_provider = OracleL1ChainProvider::new(boot.clone(), oracle.clone());
         let l2_provider = OracleL2ChainProvider::new(boot.clone(), oracle.clone());

@@ -7,7 +7,7 @@ use alloc::{boxed::Box, vec::Vec};
 use tracing::trace;
 
 /// An [OracleReader] is a high-level interface to the preimage oracle.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct OracleReader {
     pipe_handle: PipeHandle,
 }

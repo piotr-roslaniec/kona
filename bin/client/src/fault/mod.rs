@@ -7,11 +7,11 @@ mod handler;
 pub(crate) use handler::fpvm_handle_register;
 
 /// The global preimage oracle reader pipe.
-static ORACLE_READER_PIPE: PipeHandle =
+const ORACLE_READER_PIPE: PipeHandle =
     PipeHandle::new(FileDescriptor::PreimageRead, FileDescriptor::PreimageWrite);
 
 /// The global hint writer pipe.
-static HINT_WRITER_PIPE: PipeHandle =
+const HINT_WRITER_PIPE: PipeHandle =
     PipeHandle::new(FileDescriptor::HintRead, FileDescriptor::HintWrite);
 
 /// The global preimage oracle reader.
